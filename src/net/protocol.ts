@@ -13,12 +13,26 @@ export interface PlayerSummary {
 
 // host → players
 
+export interface QuestionPreviewMessage {
+  type: 'question_preview';
+  questionId: string;
+  index: number;
+  total: number;
+  deadline: number; // unix ms — конец preview-отсчёта
+}
+
 export interface QuestionMessage {
   type: 'question';
   questionId: string;
   text: string;
   options: readonly [string, string, string, string];
+  durationMs: number;
   deadline: number; // unix ms
+}
+
+export interface AnswersClosedMessage {
+  type: 'answers_closed';
+  questionId: string;
 }
 
 export interface RevealMessage {
@@ -51,7 +65,9 @@ export interface KickedMessage {
 }
 
 export type HostMessage =
+  | QuestionPreviewMessage
   | QuestionMessage
+  | AnswersClosedMessage
   | RevealMessage
   | SyncMessage
   | LobbyUpdateMessage
@@ -68,6 +84,7 @@ export interface JoinMessage {
 
 export interface AnswerMessage {
   type: 'answer';
+  playerId: string; // relay не сохраняет отправителя в сообщении — указываем явно
   questionId: string;
   choice: AnswerChoice;
   clientTs: number;

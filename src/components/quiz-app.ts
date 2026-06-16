@@ -7,10 +7,17 @@ import { provide } from '@lit/context';
 import './quiz-start';
 import './quiz-lobby';
 import './quiz-join';
+import './quiz-host-question';
+import './quiz-player-question';
+import './quiz-host-reveal';
+import './quiz-player-reveal';
+import './quiz-leaderboard';
 import { gameContext } from '../state/gameContext';
 import { lobbyContext } from '../state/lobbyContext';
+import { roundContext } from '../state/roundContext';
 import { GAME_STORE_CHANGE_EVENT, GameStore } from '../state/gameStore';
 import { LobbyController } from '../state/lobbyController';
+import { RoundController } from '../state/roundController';
 import { createTransport } from '../net/createTransport';
 
 type View = 'start' | 'join';
@@ -20,8 +27,13 @@ class QuizApp extends LitElement {
   @provide({ context: gameContext })
   gameStore = new GameStore();
 
+  private readonly transport = createTransport();
+
   @provide({ context: lobbyContext })
-  lobbyController = new LobbyController(this.gameStore, createTransport());
+  lobbyController = new LobbyController(this.gameStore, this.transport);
+
+  @provide({ context: roundContext })
+  roundController = new RoundController(this.gameStore, this.transport);
 
   @state()
   private view: View = 'start';
@@ -66,8 +78,24 @@ class QuizApp extends LitElement {
         : html`<quiz-join .roomCode=${this.initialRoomCode}></quiz-join>`;
     }
 
+    if (phase === 'preview' || phase === 'question') {
+      return role === 'host'
+        ? html`<quiz-host-question></quiz-host-question>`
+        : html`<quiz-player-question></quiz-player-question>`;
+    }
+
+    if (phase === 'reveal') {
+      return role === 'host'
+        ? html`<quiz-host-reveal></quiz-host-reveal>`
+        : html`<quiz-player-reveal></quiz-player-reveal>`;
+    }
+
+    if (phase === 'leaderboard') {
+      return html`<quiz-leaderboard></quiz-leaderboard>`;
+    }
+
     if (phase !== 'idle') {
-      // TODO: экраны preview/question/reveal/leaderboard/final — следующие этапы
+      // TODO: экран finished и переход к следующему вопросу — Этап 5
       return html`<p class="p-8 text-center text-xl">Экран для фазы «${phase}» пока не реализован.</p>`;
     }
 

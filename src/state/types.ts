@@ -1,6 +1,7 @@
 // Базовые типы игрового состояния. Используются State Layer, Game Logic и UI.
 
 import type { ConnectionState } from '../net/transport';
+import type { Question } from '../game/questions';
 
 /** Роль участника соединения. */
 export type Role = 'host' | 'player';
@@ -25,12 +26,20 @@ export interface Player {
   connected: boolean;
 }
 
-export interface Question {
+/** Каноническое определение — game/questions.ts (Game Logic — владелец формата вопроса). */
+export type { Question };
+
+/** Вопрос, который сейчас отображается. Без correctIndex — игрок не должен его знать. */
+export interface CurrentQuestion {
   questionId: string;
   text: string;
   options: readonly [string, string, string, string];
+}
+
+/** Данные раскрытия ответа: правильный вариант и распределение голосов. */
+export interface RevealInfo {
   correctIndex: AnswerChoice;
-  durationMs: number;
+  distribution: Record<AnswerChoice, number>;
 }
 
 export interface AnswerRecord {
@@ -49,10 +58,13 @@ export interface GameState {
   phase: Phase;
   roomCode: string | null;
   role: Role | null;
+  localPlayerId: string | null;
   players: Player[];
   questions: Question[];
   currentQuestionIndex: number;
+  currentQuestion: CurrentQuestion | null;
   currentDeadline: number | null;
+  lastReveal: RevealInfo | null;
   answers: AnswerRecord[];
   connectionState: ConnectionState;
 }

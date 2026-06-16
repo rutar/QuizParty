@@ -5,10 +5,9 @@
  * от этого игрока на этот вопрос.
  */
 export function validateAnswer(
-  _clientTs: number,
-  _deadline: number,
-  _alreadyAnswered: boolean,
+  clientTs: number,
+  deadline: number,
+  alreadyAnswered: boolean,
 ): boolean {
-  // TODO: реализовать правило приёма ответа
-  throw new Error('not implemented');
+  return !alreadyAnswered && clientTs <= deadline;
 }

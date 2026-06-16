@@ -192,7 +192,7 @@ score = Math.round(1000 - 500 * (timeTakenMs / durationMs))
 
 ## Текущий статус проекта
 
-**Этап:** 3 — лобби реализовано (создание комнаты, вход, kick)
+**Этап:** 4 — один полный раунд реализован (от «Начать игру» до таблицы лидеров)
 
 **Сделано:**
 - Этап 0: Vite 8 + Tailwind 4 + Lit 3.3 настроено
@@ -208,7 +208,19 @@ score = Math.round(1000 - 500 * (timeTakenMs / durationMs))
   - components/quiz-start.ts, quiz-lobby.ts, quiz-join.ts — реализованы (Tailwind, реактивны через GAME_STORE_CHANGE_EVENT)
   - components/quiz-app.ts — роутинг по фазе/роли, чтение ?room= из URL
   - main.ts — монтирует <quiz-app>
-  - Проверено вживую через Playwright (dev-сервер + party dev): хост создаёт комнату → игрок входит по коду → lobby_update синхронизируется в обе стороны, без ошибок в консоли
+- Этап 4: один полный раунд
+  - game/scoring.ts, game/validator.ts — реализованы по формуле/правилу из CLAUDE.md + тесты (tests/unit/scoring.test.ts, validator.test.ts)
+  - game/questions.ts — Question теперь канонически определён тут (не в state/types.ts), loadQuestions() через fetch + валидация формата; public/questions/default-ru.json — 5 вопросов
+  - net/protocol.ts — добавлены QuestionPreviewMessage, AnswersClosedMessage; в QuestionMessage добавлен durationMs, в AnswerMessage — playerId (без него хост не узнает отправителя через дамб-relay)
+  - state/types.ts — GameState: + localPlayerId, currentQuestion (без correctIndex — игрок не должен его знать), lastReveal; CurrentQuestion/RevealInfo
+  - state/gameStore.ts — setLocalPlayerId, setQuestions, setCurrentQuestionIndex, setCurrentQuestion, setDeadline, setLastReveal, recordAnswer (начисляет очки игроку атомарно с записью ответа)
+  - state/roundController.ts (новый) + state/roundContext.ts — оркестрация preview→question→answers_closed→reveal→(sync)→leaderboard; хост считает score/distribution авторитетно, игрок узнаёт свои +очки сравнением scoreboard до/после reveal (без локального calculateScore — не нужно доверять часам клиента)
+  - components/quiz-timer.ts — считает (deadline - now) каждый тик, не локальный countdown с нуля
+  - components/answerStyles.ts (новый, не компонент) — общие цвета/символы ▲◆●■ для host-question/player-question/host-reveal
+  - components/quiz-host-question.ts, quiz-player-question.ts, quiz-host-reveal.ts, quiz-player-reveal.ts, quiz-leaderboard.ts — реализованы
+  - quiz-host-reveal.ts получил кнопку «Далее →» → roundController.showLeaderboard() — переход reveal→leaderboard рассылается через уже существующий, ранее неиспользуемый SyncMessage
+  - quiz-app.ts — роутинг для preview/question/reveal/leaderboard по фазе и роли
+  - Проверено вживую через Playwright: полный круг host create → player join → start → preview (3с) → question → answer → close early → reveal (бар-чарт, +983 очка, место 1) → leaderboard — без ошибок в консоли на обеих сторонах
 
 **КРИТИЧЕСКИЙ FIX — декораторы (меняет «Стиль кода» в части decorators):**
 Стандартные TC39-декораторы (использовались в Этап 1–2, с `accessor`-полями) **не выполняются ни в одном текущем браузере** — нет нативной поддержки, а Vite 8/Rolldown их не транспилирует, только передаёт как есть (поймано через Playwright: `SyntaxError: Invalid or unexpected token` прямо на `@customElement(...) class`).
@@ -226,11 +238,18 @@ score = Math.round(1000 - 500 * (timeTakenMs / durationMs))
 - PARTYKIT_USERNAME — TODO-константа в cloudTransport.ts, подставить перед деплоем
 - Протокол лобби: join (player→host) → host регистрирует, шлёт welcome (адресовано playerId) + lobby_update (broadcast); kick → host шлёт kicked + lobby_update, клиент с совпавшим playerId сам делает disconnect()
 - quiz-join.ts — один компонент на два под-экрана (форма / список ожидания), переключение по GameState.phase, не по локальному флагу
+- localPlayerId живёт в GameState (не приватное поле контроллера) — он нужен и Lobby-, и RoundController, генерируется один раз в LobbyController.joinRoom()
+- Question — каноническое определение в game/questions.ts, state/types.ts реэкспортирует (тот же паттерн, что ConnectionState/net/transport.ts)
+- currentDeadline — одно поле под оба таймера (конец preview-отсчёта И конец приёма ответов), т.к. активен только один из них одновременно
+- Очки на стороне игрока считаются не локальным calculateScore(), а разницей scoreboard до/после reveal — хост авторитетен, не требует доверять часам клиента
+- Один RoundController на оба раунда (preview/question/reveal); next-question/finish — пока не реализовано (Этап 5)
 
-**Следующий шаг:** Этап 4 — preview/question экраны.
-quiz-lobby.ts «Начать игру» уже диспатчит `start_preview` локально у хоста,
-но НЕ рассылает sync игрокам — это первое, что нужно сделать (через SyncMessage),
-затем реализовать quiz-host-question.ts / quiz-player-question.ts (сейчас заглушки).
+**Следующий шаг:** Этап 5 — переход к следующему вопросу и завершение игры.
+RoundController.startRound() сейчас всегда берёт questions[0]; нужно: после leaderboard
+по кнопке хоста брать questions[currentQuestionIndex+1] (next_question) либо, если вопросов
+больше нет, finish → экран quiz-final.ts (сейчас заглушка). Также: PARTYKIT_USERNAME
+до сих пор TODO-константа — деплоить party/ перед реальным многопользовательским тестом
+(сейчас всё проверено только на localhost:1999).
 
 ---
 

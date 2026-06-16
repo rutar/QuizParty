@@ -1,0 +1,37 @@
+[
+  {
+    "questionId": "q1",
+    "text": "Столица Франции?",
+    "options": ["Берлин", "Париж", "Мадрид", "Рим"],
+    "correctIndex": 1,
+    "durationMs": 15000
+  },
+  {
+    "questionId": "q2",
+    "text": "Сколько планет в Солнечной системе?",
+    "options": ["7", "8", "9", "10"],
+    "correctIndex": 1,
+    "durationMs": 15000
+  },
+  {
+    "questionId": "q3",
+    "text": "Кто написал «Война и мир»?",
+    "options": ["Достоевский", "Чехов", "Толстой", "Пушкин"],
+    "correctIndex": 2,
+    "durationMs": 15000
+  },
+  {
+    "questionId": "q4",
+    "text": "Какой газ растения поглощают при фотосинтезе?",
+    "options": ["Кислород", "Азот", "Углекислый газ", "Водород"],
+    "correctIndex": 2,
+    "durationMs": 15000
+  },
+  {
+    "questionId": "q5",
+    "text": "Сколько континентов на Земле?",
+    "options": ["5", "6", "7", "8"],
+    "correctIndex": 2,
+    "durationMs": 15000
+  }
+]

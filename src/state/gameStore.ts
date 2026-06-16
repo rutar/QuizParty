@@ -1,7 +1,15 @@
 // Единый источник игрового состояния. UI подписывается на изменения через EventTarget,
 // доступ из компонентов — через Lit Context (gameContext.ts).
 
-import type { GameState, Player, Role } from './types';
+import type {
+  AnswerRecord,
+  CurrentQuestion,
+  GameState,
+  Player,
+  Question,
+  RevealInfo,
+  Role,
+} from './types';
 import { transition, type GameEvent } from './machine';
 
 /** Имя кастомного события, диспатчится при любом изменении state. */
@@ -12,10 +20,13 @@ function createInitialState(): GameState {
     phase: 'idle',
     roomCode: null,
     role: null,
+    localPlayerId: null,
     players: [],
     questions: [],
     currentQuestionIndex: 0,
+    currentQuestion: null,
     currentDeadline: null,
+    lastReveal: null,
     answers: [],
     connectionState: 'disconnected',
   };
@@ -47,9 +58,56 @@ export class GameStore extends EventTarget {
     this.notify();
   }
 
+  /** ID, под которым этот клиент участвует как игрок (нужен и Lobby-, и RoundController). */
+  setLocalPlayerId(playerId: string): void {
+    this.state = { ...this.state, localPlayerId: playerId };
+    this.notify();
+  }
+
   /** Заменяет ростер игроков целиком (используется LobbyController). */
   setPlayers(players: Player[]): void {
     this.state = { ...this.state, players };
+    this.notify();
+  }
+
+  /** Загруженный набор вопросов раунда (используется RoundController). */
+  setQuestions(questions: Question[]): void {
+    this.state = { ...this.state, questions };
+    this.notify();
+  }
+
+  /** Индекс текущего вопроса в this.state.questions. */
+  setCurrentQuestionIndex(index: number): void {
+    this.state = { ...this.state, currentQuestionIndex: index };
+    this.notify();
+  }
+
+  /** Вопрос, отображаемый прямо сейчас (без correctIndex). */
+  setCurrentQuestion(question: CurrentQuestion | null): void {
+    this.state = { ...this.state, currentQuestion: question };
+    this.notify();
+  }
+
+  /** Дедлайн текущего таймера (конец preview-отсчёта или конец приёма ответов). */
+  setDeadline(deadline: number | null): void {
+    this.state = { ...this.state, currentDeadline: deadline };
+    this.notify();
+  }
+
+  /** Данные раскрытия последнего вопроса (правильный ответ + распределение голосов). */
+  setLastReveal(reveal: RevealInfo | null): void {
+    this.state = { ...this.state, lastReveal: reveal };
+    this.notify();
+  }
+
+  /** Сохраняет принятый ответ и начисляет очки игроку. */
+  recordAnswer(record: AnswerRecord): void {
+    const players = this.state.players.map((player) =>
+      player.playerId === record.playerId
+        ? { ...player, score: player.score + record.score }
+        : player,
+    );
+    this.state = { ...this.state, answers: [...this.state.answers, record], players };
     this.notify();
   }
 

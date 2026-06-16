@@ -23,7 +23,9 @@
       "Bash(curl -s \"http://localhost:5173/src/components/quiz-lobby.ts\")",
       "Bash(node .smoke-debug2.mjs)",
       "Bash(node .smoke-decorator-test.mjs)",
-      "Bash(echo \"TYPECHECK_EXIT=$?\")"
+      "Bash(echo \"TYPECHECK_EXIT=$?\")",
+      "Bash(node .smoke-round.mjs)",
+      "Bash(git add *)"
     ]
   }
 }

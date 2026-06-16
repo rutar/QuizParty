@@ -15,7 +15,6 @@ function toSummaries(players: Player[]): PlayerSummary[] {
 export class LobbyController {
   private readonly gameStore: GameStore;
   private readonly transport: Transport;
-  private localPlayerId: string | null = null;
 
   constructor(gameStore: GameStore, transport: Transport) {
     this.gameStore = gameStore;
@@ -35,11 +34,12 @@ export class LobbyController {
 
   /** Игрок подключается к существующей комнате по коду. */
   async joinRoom(roomCode: string, nickname: string): Promise<void> {
-    this.localPlayerId = nanoid();
+    const playerId = nanoid();
     await this.transport.connect(roomCode, 'player');
     this.gameStore.setRoomInfo('player', roomCode);
+    this.gameStore.setLocalPlayerId(playerId);
     this.gameStore.dispatch({ type: 'start_lobby' });
-    this.transport.send({ type: 'join', playerId: this.localPlayerId, nickname });
+    this.transport.send({ type: 'join', playerId, nickname });
   }
 
   /** Хост убирает игрока из комнаты и сообщает об этом всем участникам. */
@@ -85,7 +85,7 @@ export class LobbyController {
   }
 
   private handleKicked(playerId: string): void {
-    if (playerId !== this.localPlayerId) {
+    if (playerId !== this.gameStore.getState().localPlayerId) {
       return;
     }
     this.transport.disconnect();

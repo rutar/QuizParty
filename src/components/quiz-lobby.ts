@@ -1,12 +1,14 @@
 // components/quiz-lobby.ts — лобби хоста: код комнаты, список игроков, кик, старт игры.
 
 import { LitElement, html } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, state } from 'lit/decorators.js';
 import { consume } from '@lit/context';
 import { gameContext } from '../state/gameContext';
 import { lobbyContext } from '../state/lobbyContext';
+import { roundContext } from '../state/roundContext';
 import { GAME_STORE_CHANGE_EVENT, type GameStore } from '../state/gameStore';
 import type { LobbyController } from '../state/lobbyController';
+import type { RoundController } from '../state/roundController';
 
 @customElement('quiz-lobby')
 class QuizLobby extends LitElement {
@@ -16,6 +18,12 @@ class QuizLobby extends LitElement {
 
   @consume({ context: lobbyContext })
   lobbyController!: LobbyController;
+
+  @consume({ context: roundContext })
+  roundController!: RoundController;
+
+  @state()
+  private error: string | null = null;
 
   protected override createRenderRoot(): HTMLElement | DocumentFragment {
     return this;
@@ -39,9 +47,14 @@ class QuizLobby extends LitElement {
     this.lobbyController.kickPlayer(playerId);
   }
 
-  private handleStart(): void {
-    // TODO: разослать игрокам sync о смене фазы — экраны preview/question будут в следующем этапе
-    this.gameStore.dispatch({ type: 'start_preview' });
+  private async handleStart(): Promise<void> {
+    this.error = null;
+    try {
+      await this.roundController.startRound();
+    } catch (cause) {
+      console.error('Не удалось начать игру:', cause);
+      this.error = 'Не удалось загрузить вопросы. Попробуйте снова.';
+    }
   }
 
   protected override render() {
@@ -78,6 +91,7 @@ class QuizLobby extends LitElement {
         >
           Начать игру
         </button>
+        ${this.error ? html`<p class="text-lg text-red-500">${this.error}</p>` : ''}
       </div>
     `;
   }

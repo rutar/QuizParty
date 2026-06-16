@@ -7,10 +7,12 @@
  * score = round(1000 - 500 * (timeTakenMs / durationMs)).
  */
 export function calculateScore(
-  _isCorrect: boolean,
-  _timeTakenMs: number,
-  _durationMs: number,
+  isCorrect: boolean,
+  timeTakenMs: number,
+  durationMs: number,
 ): number {
-  // TODO: реализовать формулу подсчёта очков
-  throw new Error('not implemented');
+  if (!isCorrect) {
+    return 0;
+  }
+  return Math.round(1000 - 500 * (timeTakenMs / durationMs));
 }
