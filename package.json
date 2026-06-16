@@ -1,0 +1,31 @@
+{
+  "name": "quizparty",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.0",
+    "@tailwindcss/vite": "^4.3.1",
+    "@types/qrcode": "^1.5.6",
+    "@vitest/ui": "^4.1.9",
+    "playwright": "^1.61.0",
+    "tailwindcss": "^4.3.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.12",
+    "vitest": "^4.1.9"
+  },
+  "dependencies": {
+    "@lit/context": "^1.1.6",
+    "idb-keyval": "^6.2.5",
+    "lit": "^3.3.3",
+    "nanoid": "^5.1.11",
+    "partysocket": "^1.2.0",
+    "qrcode": "^1.5.4"
+  }
+}
