@@ -4,7 +4,26 @@
       "Bash(npx tsc *)",
       "Bash(npx vitest *)",
       "Bash(npm run *)",
-      "Bash(echo \"EXIT_CODE=$?\")"
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Skill(run)",
+      "Bash(chromium-cli --help)",
+      "Bash(npx playwright *)",
+      "Bash(node .smoke-test.mjs)",
+      "Bash(node .smoke-debug.mjs)",
+      "Bash(curl -s \"http://localhost:5173/src/main.ts\")",
+      "Bash(curl -s \"http://localhost:5173/src/components/quiz-app.ts\")",
+      "Bash(mkdir -p src/.repro)",
+      "Bash(cp .repro/a.ts src/.repro/a.ts)",
+      "Bash(cp .repro/b.ts src/.repro/b.ts)",
+      "Bash(curl -s \"http://localhost:5173/src/.repro/a.ts\")",
+      "Bash(curl -s \"http://localhost:5173/src/.repro/b.ts\")",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(curl -s \"http://localhost:5173/src/components/quiz-start.ts\")",
+      "Bash(curl -s \"http://localhost:5173/src/components/quiz-join.ts\")",
+      "Bash(curl -s \"http://localhost:5173/src/components/quiz-lobby.ts\")",
+      "Bash(node .smoke-debug2.mjs)",
+      "Bash(node .smoke-decorator-test.mjs)",
+      "Bash(echo \"TYPECHECK_EXIT=$?\")"
     ]
   }
 }

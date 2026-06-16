@@ -1,7 +1,7 @@
 // Единый источник игрового состояния. UI подписывается на изменения через EventTarget,
 // доступ из компонентов — через Lit Context (gameContext.ts).
 
-import type { GameState } from './types';
+import type { GameState, Player, Role } from './types';
 import { transition, type GameEvent } from './machine';
 
 /** Имя кастомного события, диспатчится при любом изменении state. */
@@ -38,6 +38,18 @@ export class GameStore extends EventTarget {
   dispatch(event: GameEvent): void {
     const phase = transition(this.state.phase, event);
     this.state = { ...this.state, phase };
+    this.notify();
+  }
+
+  /** Фиксирует роль участника и код комнаты после успешного connect(). */
+  setRoomInfo(role: Role, roomCode: string): void {
+    this.state = { ...this.state, role, roomCode };
+    this.notify();
+  }
+
+  /** Заменяет ростер игроков целиком (используется LobbyController). */
+  setPlayers(players: Player[]): void {
+    this.state = { ...this.state, players };
     this.notify();
   }
 

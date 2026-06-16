@@ -2,8 +2,8 @@
 // (CloudTransport сейчас; LocalTransport — в v2.0) от всего кода вне net/.
 
 import type { Transport } from './transport';
+import { CloudTransport } from './cloudTransport';
 
 export function createTransport(): Transport {
-  // TODO: вернуть new CloudTransport() (см. cloudTransport.ts)
-  throw new Error('not implemented');
+  return new CloudTransport();
 }

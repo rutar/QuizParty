@@ -1,5 +1,7 @@
-import './style.css'
+import './components/quiz-app';
+import './style.css';
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <h1 class="text-4xl font-bold text-center mt-8">QuizParty</h1>
-`
+const root = document.querySelector('#app');
+if (root) {
+  root.replaceChildren(document.createElement('quiz-app'));
+}

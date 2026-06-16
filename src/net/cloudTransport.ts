@@ -7,7 +7,11 @@ import type { GameMessage } from './protocol';
 
 // TODO: заменить на свой PartyKit-аккаунт после `npx partykit deploy` в party/
 const PARTYKIT_USERNAME = 'TODO_USERNAME';
-const PARTYKIT_HOST = `quiz-party-server.${PARTYKIT_USERNAME}.partykit.dev`;
+
+// В dev подключаемся к локальному `partykit dev` (cd party && npm run dev), в prod — к облаку.
+const PARTYKIT_HOST = import.meta.env.DEV
+  ? 'localhost:1999'
+  : `quiz-party-server.${PARTYKIT_USERNAME}.partykit.dev`;
 
 export class CloudTransport implements Transport {
   private socket: PartySocket | null = null;

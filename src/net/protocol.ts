@@ -39,11 +39,24 @@ export interface LobbyUpdateMessage {
   players: PlayerSummary[];
 }
 
+export interface WelcomeMessage {
+  type: 'welcome';
+  playerId: string;
+  roomCode: string;
+}
+
+export interface KickedMessage {
+  type: 'kicked';
+  playerId: string;
+}
+
 export type HostMessage =
   | QuestionMessage
   | RevealMessage
   | SyncMessage
-  | LobbyUpdateMessage;
+  | LobbyUpdateMessage
+  | WelcomeMessage
+  | KickedMessage;
 
 // player → host
 

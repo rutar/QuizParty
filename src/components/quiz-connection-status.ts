@@ -5,7 +5,7 @@ import { LitElement, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 @customElement('quiz-connection-status')
-export class QuizConnectionStatus extends LitElement {
+class QuizConnectionStatus extends LitElement {
   protected override createRenderRoot(): HTMLElement | DocumentFragment {
     return this;
   }
@@ -15,3 +15,5 @@ export class QuizConnectionStatus extends LitElement {
     return html``;
   }
 }
+
+export { QuizConnectionStatus };

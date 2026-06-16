@@ -192,29 +192,45 @@ score = Math.round(1000 - 500 * (timeTakenMs / durationMs))
 
 ## Текущий статус проекта
 
-**Этап:** 2 — транспортный слой завершён
+**Этап:** 3 — лобби реализовано (создание комнаты, вход, kick)
 
 **Сделано:**
 - Этап 0: Vite 8 + Tailwind 4 + Lit 3.3 настроено
 - Этап 1: весь скелет проекта, все типы, tsc чистый
-- Этап 2: транспортный слой реализован
-  - state/machine.ts — полная таблица переходов TRANSITIONS, reset из любой фазы
-  - state/gameStore.ts — dispatch() → transition() → notify()
-  - party/src/server.ts — relay pub/sub (broadcast без отправителя)
-  - net/cloudTransport.ts — полная реализация через PartySocket
+- Этап 2: транспортный слой реализован (machine.ts, gameStore.dispatch, party/src/server.ts relay, cloudTransport.ts)
+- Этап 3: сценарий лобби
+  - net/cloudTransport.ts — dev (localhost:1999) / prod (PARTYKIT_USERNAME) хост по import.meta.env.DEV
+  - net/protocol.ts — добавлены WelcomeMessage, KickedMessage
+  - game/roomCode.ts — generateRoomCode() через nanoid customAlphabet (6 симв., без O/0/I/1)
+  - state/gameStore.ts — setRoomInfo(), setPlayers()
+  - state/lobbyController.ts (новый) — createRoom/joinRoom/kickPlayer, обработка join/lobby_update/kicked
+  - state/lobbyContext.ts (новый) — Lit Context для LobbyController
+  - components/quiz-start.ts, quiz-lobby.ts, quiz-join.ts — реализованы (Tailwind, реактивны через GAME_STORE_CHANGE_EVENT)
+  - components/quiz-app.ts — роутинг по фазе/роли, чтение ?room= из URL
+  - main.ts — монтирует <quiz-app>
+  - Проверено вживую через Playwright (dev-сервер + party dev): хост создаёт комнату → игрок входит по коду → lobby_update синхронизируется в обе стороны, без ошибок в консоли
+
+**КРИТИЧЕСКИЙ FIX — декораторы (меняет «Стиль кода» в части decorators):**
+Стандартные TC39-декораторы (использовались в Этап 1–2, с `accessor`-полями) **не выполняются ни в одном текущем браузере** — нет нативной поддержки, а Vite 8/Rolldown их не транспилирует, только передаёт как есть (поймано через Playwright: `SyntaxError: Invalid or unexpected token` прямо на `@customElement(...) class`).
+Исправлено переходом на legacy `experimentalDecorators`:
+- tsconfig.json: `"experimentalDecorators": true`, `"useDefineForClassFields": false`, **убран** `"erasableSyntaxOnly"` (несовместим с legacy-декораторами)
+- Во всех компонентах с `@property`/`@state`/`@provide`/`@consume` убрано ключевое слово `accessor` — поля обычные
+- `@customElement`/`@property` и т.д. как синтаксис остаются — меняется только flavor (legacy вместо standard), esbuild теперь реально транспилирует декораторы в рабочий JS
+- Если в новых файлах увидишь `accessor` рядом с Lit-декоратором — это ошибка, удалить
 
 **Архитектурные решения зафиксированы:**
 - ConnectionState живёт в net/transport.ts, state/types.ts реэкспортирует
-- Lit 3 стандартные декораторы: @provide/@consume требуют accessor-полей
 - partysocket импортируется только в net/cloudTransport.ts
 - PartyKit создал под-проект: точка входа party/src/server.ts (не party/server.ts)
 - PartySocket использует host+room API, не ручную строку URL
 - PARTYKIT_USERNAME — TODO-константа в cloudTransport.ts, подставить перед деплоем
+- Протокол лобби: join (player→host) → host регистрирует, шлёт welcome (адресовано playerId) + lobby_update (broadcast); kick → host шлёт kicked + lobby_update, клиент с совпавшим playerId сам делает disconnect()
+- quiz-join.ts — один компонент на два под-экрана (форма / список ожидания), переключение по GameState.phase, не по локальному флагу
 
-**Следующий шаг:** Этап 3 — лобби.
-Начать с quiz-start.ts и quiz-lobby.ts (хост).
-Перед этим: установить PartyKit локально для dev-сервера:
-cd party && npm run dev
+**Следующий шаг:** Этап 4 — preview/question экраны.
+quiz-lobby.ts «Начать игру» уже диспатчит `start_preview` локально у хоста,
+но НЕ рассылает sync игрокам — это первое, что нужно сделать (через SyncMessage),
+затем реализовать quiz-host-question.ts / quiz-player-question.ts (сейчас заглушки).
 
 ---
 

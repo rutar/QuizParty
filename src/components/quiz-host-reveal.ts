@@ -4,7 +4,7 @@ import { LitElement, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 
 @customElement('quiz-host-reveal')
-export class QuizHostReveal extends LitElement {
+class QuizHostReveal extends LitElement {
   protected override createRenderRoot(): HTMLElement | DocumentFragment {
     return this;
   }
@@ -14,3 +14,5 @@ export class QuizHostReveal extends LitElement {
     return html``;
   }
 }
+
+export { QuizHostReveal };
