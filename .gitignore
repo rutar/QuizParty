@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Wrangler (Cloudflare Workers) — может содержать кэш сессии
+.wrangler/
+.dev.vars
+
+# Claude Code — локальные настройки сессии
+.claude/
