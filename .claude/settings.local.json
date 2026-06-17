@@ -33,7 +33,11 @@
       "PowerShell(cd \"E:\\\\Development\\\\QuizParty\" && npm run dev 2>&1 &)",
       "PowerShell(cd \"E:\\\\Development\\\\QuizParty\\\\party\" && npm run dev 2>&1 &)",
       "PowerShell(Receive-Job *)",
-      "PowerShell(\\(Get-Command npx\\).Source)"
+      "PowerShell(\\(Get-Command npx\\).Source)",
+      "PowerShell($lines = Get-Content \"C:\\\\Users\\\\Dobry\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\E--Development-QuizParty\\\\3275b07e-4cb1-40e4-9e8c-ffce12f43207\\\\tasks\\\\a4587b37b5bae5e11.output\" | Where-Object { $_ -match '\"role\":\"assistant\"' }; $lines | Select-Object -Last 1 | ForEach-Object { \\($_ | ConvertFrom-Json\\).message.content[0].text })",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.npmjs.com)"
     ]
   }
 }

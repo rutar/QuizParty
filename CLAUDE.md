@@ -192,7 +192,7 @@ score = Math.round(1000 - 500 * (timeTakenMs / durationMs))
 
 ## Текущий статус проекта
 
-**Этап:** 5 — полная игра: цикл по всем вопросам, финал, новая игра, восстановление сессии
+**Этап:** 5+ — транспортный слой мигрирован с PartyKit Cloud → partyserver (Cloudflare Workers)
 
 **Сделано:**
 - Этап 0: Vite 8 + Tailwind 4 + Lit 3.3 настроено
@@ -219,6 +219,15 @@ score = Math.round(1000 - 500 * (timeTakenMs / durationMs))
   - Проверено Playwright: 2 теста зелёных (42 сек):
     - «полная партия из 5 вопросов до финала» — от лобби до «Закончить» → стартовый экран
     - «новая игра — сброс очков и возврат в лобби» — финал → «Новая игра» → лобби → старт второй партии
+- Транспорт мигрирован: PartyKit Cloud → partyserver (Cloudflare Workers)
+  - party/src/server.ts переписан на partyserver (extends Server, reversed onMessage params)
+  - party/wrangler.jsonc создан (quizparty, QuizPartyServer DO, new_sqlite_classes)
+  - cloudTransport.ts: dev=localhost:8787, prod=quizparty.WORKERS_SUBDOMAIN.workers.dev, party='quiz-party-server'
+  - tsc (main + party/) + vite build — чистые
+- GitHub Pages деплой настроен:
+  - vite.config.ts: base='/QuizParty/' только в production (command === 'build')
+  - .github/workflows/deploy.yml: push main → npm ci → build → deploy-pages
+  - Финальный URL: https://rustarg.github.io/QuizParty/
 
 **КРИТИЧЕСКИЙ FIX — декораторы:**
 legacy `experimentalDecorators`, `useDefineForClassFields: false`, без `accessor`. Без изменений.
@@ -228,9 +237,15 @@ legacy `experimentalDecorators`, `useDefineForClassFields: false`, без `acces
 - forcePhase() в GameStore — единственный способ перейти в произвольную фазу при sync (bypass state machine); использовать только в handleSyncReceived
 - handlePreviewReceived: из leaderboard → dispatch(next_question), из lobby → dispatch(start_preview)
 - Восстановление игрока: lobbyController сохраняет {role, roomCode, localPlayerId, nickname} в IDB ключ 'quizparty_session'; quiz-app.tryReconnect() при старте загружает и подключает, потом request_sync
-- PARTYKIT_USERNAME — TODO-константа в cloudTransport.ts, подставить перед деплоем
+- **Транспорт (серверная часть) мигрирован на partyserver + wrangler:**
+  - party/src/server.ts — переписан на partyserver API (extends Server, onMessage(connection, message), this.broadcast)
+  - party/wrangler.jsonc — имя quizparty, DO-привязка QuizPartyServer, new_sqlite_classes (не new_classes!)
+  - party/package.json — scripts: dev = wrangler dev, deploy = wrangler deploy; dev:partykit оставлен как fallback
+  - src/net/cloudTransport.ts — dev host: localhost:8787 (wrangler dev); prod host: quizparty.WORKERS_SUBDOMAIN.workers.dev; party: 'quiz-party-server' (kebab-case от QuizPartyServer → routePartykitRequest)
+  - routePartykitRequest маппинг: binding name → camelCaseToKebabCase → URL-сегмент (QuizPartyServer → quiz-party-server)
+  - WORKERS_SUBDOMAIN = 'rustarg' в cloudTransport.ts → prod host: quizparty.rustarg.workers.dev
 
-**Следующий шаг:** деплой (PARTYKIT_USERNAME + GitHub Pages), оффлайн-режим v2.0 (LocalTransport).
+**Следующий шаг:** деплой — `git push main` запускает GitHub Actions, Pages публикуется автоматически. URL: https://rustarg.github.io/QuizParty/. Оффлайн-режим v2.0 (LocalTransport) — откладывается.
 
 ---
 

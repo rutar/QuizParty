@@ -1,0 +1,13 @@
+{
+  "name": "quizparty",
+  "main": "src/server.ts",
+  "compatibility_date": "2025-01-01",
+  "durable_objects": {
+    "bindings": [
+      { "name": "QuizPartyServer", "class_name": "QuizPartyServer" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["QuizPartyServer"] }
+  ]
+}

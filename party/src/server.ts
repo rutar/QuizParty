@@ -1,12 +1,21 @@
-import type * as Party from "partykit/server";
+/// <reference types="@cloudflare/workers-types" />
+
+import { routePartykitRequest, Server } from "partyserver";
+import type { Connection, WSMessage } from "partyserver";
+
+interface Env {
+  QuizPartyServer: DurableObjectNamespace;
+}
 
 /** Pub/sub relay: пересылает входящее сообщение всем остальным подключениям комнаты. */
-export default class QuizPartyServer implements Party.Server {
-  constructor(readonly room: Party.Room) {}
-
-  onMessage(message: string, sender: Party.Connection) {
-    this.room.broadcast(message, [sender.id]);
+export class QuizPartyServer extends Server<Env> {
+  onMessage(connection: Connection, message: WSMessage): void {
+    this.broadcast(message, [connection.id]);
   }
 }
 
-QuizPartyServer satisfies Party.Worker;
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    return (await routePartykitRequest(request, env)) ?? new Response("Not Found", { status: 404 });
+  },
+} satisfies ExportedHandler<Env>;

@@ -5,13 +5,13 @@ import PartySocket from 'partysocket';
 import type { ConnectionState, Transport } from './transport';
 import type { GameMessage } from './protocol';
 
-// TODO: заменить на свой PartyKit-аккаунт после `npx partykit deploy` в party/
-const PARTYKIT_USERNAME = 'TODO_USERNAME';
+// TODO: заменить на свой workers.dev-поддомен после `wrangler deploy` в party/
+const WORKERS_SUBDOMAIN = 'rustarg';
 
-// В dev подключаемся к локальному `partykit dev` (cd party && npm run dev), в prod — к облаку.
-const PARTYKIT_HOST = import.meta.env.DEV
-  ? 'localhost:1999'
-  : `quiz-party-server.${PARTYKIT_USERNAME}.partykit.dev`;
+// В dev — wrangler dev (порт 8787), в prod — Cloudflare Workers.
+const HOST = import.meta.env.DEV
+  ? 'localhost:8787'
+  : `quizparty.${WORKERS_SUBDOMAIN}.workers.dev`;
 
 export class CloudTransport implements Transport {
   private socket: PartySocket | null = null;
@@ -22,7 +22,8 @@ export class CloudTransport implements Transport {
     this.emitConnectionChange('connecting');
 
     const socket = new PartySocket({
-      host: PARTYKIT_HOST,
+      host: HOST,
+      party: 'quiz-party-server', // kebab-case от имени DO-привязки QuizPartyServer
       room: roomCode,
       query: { role },
     });
