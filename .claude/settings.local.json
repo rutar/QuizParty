@@ -28,7 +28,12 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git commit *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "PowerShell(New-Item *)",
+      "PowerShell(cd \"E:\\\\Development\\\\QuizParty\" && npm run dev 2>&1 &)",
+      "PowerShell(cd \"E:\\\\Development\\\\QuizParty\\\\party\" && npm run dev 2>&1 &)",
+      "PowerShell(Receive-Job *)",
+      "PowerShell(\\(Get-Command npx\\).Source)"
     ]
   }
 }

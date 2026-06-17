@@ -3,10 +3,22 @@
 
 import { nanoid } from 'nanoid';
 import { generateRoomCode } from '../game/roomCode';
+import { clearState, saveState } from '../persistence/storage';
 import type { GameMessage, PlayerSummary } from '../net/protocol';
 import type { Transport } from '../net/transport';
 import type { GameStore } from './gameStore';
 import type { Player } from './types';
+
+/** Ключ в IndexedDB для сохранения сессии игрока. */
+export const SESSION_KEY = 'quizparty_session';
+
+/** Сохранённая сессия игрока (для переподключения после reload). */
+export interface PlayerSession {
+  role: 'player';
+  roomCode: string;
+  localPlayerId: string;
+  nickname: string;
+}
 
 function toSummaries(players: Player[]): PlayerSummary[] {
   return players.map(({ playerId, nickname, score }) => ({ playerId, nickname, score }));
@@ -40,6 +52,9 @@ export class LobbyController {
     this.gameStore.setLocalPlayerId(playerId);
     this.gameStore.dispatch({ type: 'start_lobby' });
     this.transport.send({ type: 'join', playerId, nickname });
+    // Сохраняем сессию для переподключения после reload
+    const session: PlayerSession = { role: 'player', roomCode, localPlayerId: playerId, nickname };
+    void saveState(SESSION_KEY, session);
   }
 
   /** Хост убирает игрока из комнаты и сообщает об этом всем участникам. */
@@ -88,6 +103,7 @@ export class LobbyController {
     if (playerId !== this.gameStore.getState().localPlayerId) {
       return;
     }
+    void clearState(SESSION_KEY);
     this.transport.disconnect();
     this.gameStore.dispatch({ type: 'reset' });
   }

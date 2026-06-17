@@ -64,6 +64,10 @@ export interface KickedMessage {
   playerId: string;
 }
 
+export interface GameEndedMessage {
+  type: 'game_ended';
+}
+
 export type HostMessage =
   | QuestionPreviewMessage
   | QuestionMessage
@@ -72,7 +76,8 @@ export type HostMessage =
   | SyncMessage
   | LobbyUpdateMessage
   | WelcomeMessage
-  | KickedMessage;
+  | KickedMessage
+  | GameEndedMessage;
 
 // player → host
 

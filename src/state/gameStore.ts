@@ -100,6 +100,28 @@ export class GameStore extends EventTarget {
     this.notify();
   }
 
+  /** Сброс для новой игры: обнуляет очки игроков, очищает данные раунда. Игроки остаются. */
+  resetForNewGame(): void {
+    const players = this.state.players.map((player) => ({ ...player, score: 0 }));
+    this.state = {
+      ...this.state,
+      players,
+      questions: [],
+      answers: [],
+      currentQuestionIndex: 0,
+      currentQuestion: null,
+      currentDeadline: null,
+      lastReveal: null,
+    };
+    this.notify();
+  }
+
+  /** Принудительно устанавливает фазу в обход state machine — только для обработки sync. */
+  forcePhase(phase: import('./types').Phase): void {
+    this.state = { ...this.state, phase };
+    this.notify();
+  }
+
   /** Сохраняет принятый ответ и начисляет очки игроку. */
   recordAnswer(record: AnswerRecord): void {
     const players = this.state.players.map((player) =>

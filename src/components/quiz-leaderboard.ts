@@ -4,13 +4,18 @@ import { LitElement, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
 import { consume } from '@lit/context';
 import { gameContext } from '../state/gameContext';
+import { roundContext } from '../state/roundContext';
 import { GAME_STORE_CHANGE_EVENT, type GameStore } from '../state/gameStore';
+import type { RoundController } from '../state/roundController';
 
 @customElement('quiz-leaderboard')
 class QuizLeaderboard extends LitElement {
-  // @consume гарантированно заполняет поле до первого render()
+  // @consume гарантированно заполняет поля до первого render()
   @consume({ context: gameContext })
   gameStore!: GameStore;
+
+  @consume({ context: roundContext })
+  roundController!: RoundController;
 
   protected override createRenderRoot(): HTMLElement | DocumentFragment {
     return this;
@@ -30,9 +35,14 @@ class QuizLeaderboard extends LitElement {
     this.requestUpdate();
   };
 
+  private handleNext(): void {
+    this.roundController.nextQuestion();
+  }
+
   protected override render() {
-    const { players } = this.gameStore.getState();
+    const { players, role, currentQuestionIndex, questions } = this.gameStore.getState();
     const ranked = [...players].sort((a, b) => b.score - a.score);
+    const isLastQuestion = currentQuestionIndex >= questions.length - 1;
 
     return html`
       <div class="flex min-h-screen flex-col items-center gap-8 px-8 py-10">
@@ -47,6 +57,17 @@ class QuizLeaderboard extends LitElement {
             `,
           )}
         </ol>
+
+        ${role === 'host'
+          ? html`
+              <button
+                class="rounded-2xl bg-blue-600 px-10 py-5 text-3xl font-bold text-white"
+                @click=${this.handleNext}
+              >
+                ${isLastQuestion ? 'Завершить игру →' : 'Следующий вопрос →'}
+              </button>
+            `
+          : html`<p class="text-2xl text-slate-400">Ждём хоста…</p>`}
       </div>
     `;
   }

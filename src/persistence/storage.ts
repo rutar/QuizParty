@@ -1,11 +1,14 @@
-// persistence/storage.ts — обёртка над idb-keyval для сохранения состояния игрока/хоста.
+// persistence/storage.ts — обёртка над idb-keyval для сохранения сессии игрока.
+import { get, set, del } from 'idb-keyval';
 
-export async function saveState(_key: string, _value: unknown): Promise<void> {
-  // TODO: idb-keyval set()
-  throw new Error('not implemented');
+export async function saveState(key: string, value: unknown): Promise<void> {
+  await set(key, value);
 }
 
-export async function loadState(_key: string): Promise<unknown> {
-  // TODO: idb-keyval get()
-  throw new Error('not implemented');
+export async function loadState(key: string): Promise<unknown> {
+  return get(key);
+}
+
+export async function clearState(key: string): Promise<void> {
+  await del(key);
 }

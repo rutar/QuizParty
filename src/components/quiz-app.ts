@@ -12,13 +12,16 @@ import './quiz-player-question';
 import './quiz-host-reveal';
 import './quiz-player-reveal';
 import './quiz-leaderboard';
+import './quiz-final';
 import { gameContext } from '../state/gameContext';
 import { lobbyContext } from '../state/lobbyContext';
 import { roundContext } from '../state/roundContext';
 import { GAME_STORE_CHANGE_EVENT, GameStore } from '../state/gameStore';
-import { LobbyController } from '../state/lobbyController';
+import { LobbyController, SESSION_KEY } from '../state/lobbyController';
+import type { PlayerSession } from '../state/lobbyController';
 import { RoundController } from '../state/roundController';
 import { createTransport } from '../net/createTransport';
+import { loadState } from '../persistence/storage';
 
 type View = 'start' | 'join';
 
@@ -53,6 +56,9 @@ class QuizApp extends LitElement {
     if (roomFromUrl) {
       this.initialRoomCode = roomFromUrl.toUpperCase();
       this.view = 'join';
+    } else {
+      // Пробуем переподключить игрока по сохранённой сессии (если страница была перезагружена)
+      void this.tryReconnect();
     }
   }
 
@@ -64,6 +70,22 @@ class QuizApp extends LitElement {
   private readonly handleStoreChange = (): void => {
     this.requestUpdate();
   };
+
+  /** Восстанавливает сессию игрока из IndexedDB и отправляет request_sync хосту. */
+  private async tryReconnect(): Promise<void> {
+    const saved = await loadState(SESSION_KEY);
+    if (!isPlayerSession(saved)) {
+      return;
+    }
+    try {
+      await this.transport.connect(saved.roomCode, 'player');
+      this.gameStore.setRoomInfo('player', saved.roomCode);
+      this.gameStore.setLocalPlayerId(saved.localPlayerId);
+      this.transport.send({ type: 'request_sync', playerId: saved.localPlayerId });
+    } catch {
+      // Сессия устарела или сервер недоступен — игнорируем
+    }
+  }
 
   private handleNavigateJoin(): void {
     this.view = 'join';
@@ -94,9 +116,8 @@ class QuizApp extends LitElement {
       return html`<quiz-leaderboard></quiz-leaderboard>`;
     }
 
-    if (phase !== 'idle') {
-      // TODO: экран finished и переход к следующему вопросу — Этап 5
-      return html`<p class="p-8 text-center text-xl">Экран для фазы «${phase}» пока не реализован.</p>`;
+    if (phase === 'finished') {
+      return html`<quiz-final></quiz-final>`;
     }
 
     if (this.view === 'join') {
@@ -105,6 +126,17 @@ class QuizApp extends LitElement {
 
     return html`<quiz-start @navigate-join=${this.handleNavigateJoin}></quiz-start>`;
   }
+}
+
+function isPlayerSession(value: unknown): value is PlayerSession {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as Record<string, unknown>)['role'] === 'player' &&
+    typeof (value as Record<string, unknown>)['roomCode'] === 'string' &&
+    typeof (value as Record<string, unknown>)['localPlayerId'] === 'string' &&
+    typeof (value as Record<string, unknown>)['nickname'] === 'string'
+  );
 }
 
 export { QuizApp };
