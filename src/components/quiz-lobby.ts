@@ -9,6 +9,7 @@ import { roundContext } from '../state/roundContext';
 import { GAME_STORE_CHANGE_EVENT, type GameStore } from '../state/gameStore';
 import type { LobbyController } from '../state/lobbyController';
 import type { RoundController } from '../state/roundController';
+import './quiz-qr';
 
 @customElement('quiz-lobby')
 class QuizLobby extends LitElement {
@@ -62,9 +63,16 @@ class QuizLobby extends LitElement {
 
     return html`
       <div class="flex min-h-screen flex-col items-center gap-10 px-6 py-10 text-center">
-        <div>
-          <p class="text-2xl text-slate-500">Код комнаты</p>
-          <p class="text-7xl font-extrabold tracking-widest">${roomCode}</p>
+        <!-- QR-код и код комнаты — рядом, крупно, для ТВ-экрана -->
+        <div class="flex flex-wrap items-center justify-center gap-12">
+          <quiz-qr .roomCode=${roomCode}></quiz-qr>
+          <div class="flex flex-col items-center gap-3">
+            <p class="text-3xl text-slate-500">Код комнаты</p>
+            <p class="text-8xl font-extrabold tracking-widest leading-none">${roomCode}</p>
+            <p class="mt-2 max-w-xs break-all text-lg text-slate-400">
+              или открой ссылку из QR
+            </p>
+          </div>
         </div>
 
         <ul class="flex flex-wrap justify-center gap-4">

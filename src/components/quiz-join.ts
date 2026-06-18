@@ -7,6 +7,7 @@ import { gameContext } from '../state/gameContext';
 import { lobbyContext } from '../state/lobbyContext';
 import { GAME_STORE_CHANGE_EVENT, type GameStore } from '../state/gameStore';
 import type { LobbyController } from '../state/lobbyController';
+import './quiz-qr';
 
 @customElement('quiz-join')
 class QuizJoin extends LitElement {
@@ -108,10 +109,17 @@ class QuizJoin extends LitElement {
   private renderWaiting() {
     const { players, roomCode } = this.gameStore.getState();
     return html`
-      <div class="flex min-h-screen flex-col items-center gap-8 px-4 py-12 text-center">
+      <div class="flex min-h-screen flex-col items-center gap-6 px-4 py-10 text-center">
         <p class="text-xl text-slate-500">Код комнаты</p>
         <p class="text-5xl font-bold tracking-widest">${roomCode}</p>
         <p class="text-2xl">Ждём начала игры…</p>
+
+        <!-- QR только в фазе lobby — позвать ещё игроков -->
+        <div class="flex flex-col items-center gap-2">
+          <quiz-qr .roomCode=${roomCode} .size=${240}></quiz-qr>
+          <p class="text-base text-slate-500">Позови ещё игроков — пусть отсканируют</p>
+        </div>
+
         <ul class="flex flex-wrap justify-center gap-3">
           ${players.map(
             (player) => html`
